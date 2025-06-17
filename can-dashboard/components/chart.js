@@ -156,6 +156,7 @@ export default function Chart({ data, metric, metrics, height = 200, overlay = f
 
     const canvas = canvasRef.current
     const rect = canvas.getBoundingClientRect()
+    const containerRect = canvas.parentElement.getBoundingClientRect()
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
 
@@ -176,10 +177,19 @@ export default function Chart({ data, metric, metrics, height = 200, overlay = f
           })
           .join("\n")
 
+        // Calculate tooltip position relative to container and clamp within viewport
+        let tooltipX = e.clientX - containerRect.left
+        let tooltipY = e.clientY - containerRect.top - 10
+
+        // Clamp tooltipX within container width
+        tooltipX = Math.min(Math.max(tooltipX, 0), containerRect.width)
+        // Clamp tooltipY within container height
+        tooltipY = Math.min(Math.max(tooltipY, 0), containerRect.height)
+
         setTooltip({
           show: true,
-          x: e.clientX,
-          y: e.clientY,
+          x: tooltipX,
+          y: tooltipY,
           content,
         })
       }
@@ -239,19 +249,19 @@ export default function Chart({ data, metric, metrics, height = 200, overlay = f
       />
 
       {tooltip.show && (
-        <div
-          className="tooltip"
-          style={{
-            left: tooltip.x,
-            top: tooltip.y,
-            position: "fixed",
-            zIndex: 1000,
-          }}
-        >
-          {tooltip.content.split("\n").map((line, index) => (
-            <div key={index}>{line}</div>
-          ))}
-        </div>
+      <div
+        className="tooltip"
+        style={{
+          left: tooltip.x,
+          top: tooltip.y,
+          position: "absolute",
+          zIndex: 1000,
+        }}
+      >
+        {tooltip.content.split("\n").map((line, index) => (
+          <div key={index}>{line}</div>
+        ))}
+      </div>
       )}
 
       <style jsx>{`
